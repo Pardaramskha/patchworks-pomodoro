@@ -1,9 +1,11 @@
 import React, {useState, useEffect, useRef} from "react"
+import "./App.css"
 
 function App() {
 
-  const [cycle, setCycle] = React.useState({
+  const [cycle, setCycle] = useState({
     on: false,
+    pause: false,
     mode: "work",
     workTime: 3,
     pauseTime: 5,
@@ -11,29 +13,21 @@ function App() {
     loops: 2,
   })
 
-  const [countdown, setCountdown] = React.useState(0)
+  const [countdown, setCountdown] = useState(0)
 
   // refs
   const countdownRef = useRef(countdown)
   const modeRef = useRef(cycle.mode)
   const loopRef = useRef(cycle.loops)
 
-  const styles = {
-    wrapper: {
-      minHeight: "100%",
-      width: "100%",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignContent: "center",
-      textAlign: "center"
-    }
-  }
-
-  const tick = () => {
-    countdownRef.current--
-    setCountdown(countdownRef.current)
-  }
+  // TODO: notify
+  // useEffect(() => {
+  //   if (!("Notification" in window)) {
+  //     console.log("This browser does not support desktop notification");
+  //   } else {
+  //     Notification.requestPermission();
+  //   }
+  // }, [])
 
   useEffect(() => {
 
@@ -49,21 +43,19 @@ function App() {
           : cycle.mode === "work" && loopRef.current > 1 ? cycle.pauseTime
           : cycle.workTime
 
-      console.log("NEXT MODE:", nextTimer)
-
+      // Change cycle
       setCycle({...cycle, mode: nextMode})
       modeRef.current = nextMode
-
-      countdownRef.current = nextTimer
-      setCountdown(nextTimer)
-
+      // Change timer
+      countdownRef.current = nextTimer*60
+      setCountdown(countdownRef.current)
+      // Removes a loop at the end of each pause (when mode is switched back to "work")
       if (modeRef.current === "work") loopRef.current--
     }
 
     // Default behaviour when it's work time
     if (modeRef.current === "work") {
-      // countdownRef.current = cycle.workTime*60
-      countdownRef.current = cycle.workTime
+      countdownRef.current = cycle.workTime*60
       setCountdown(countdownRef.current)
     }
 
@@ -71,6 +63,8 @@ function App() {
       // if nothing has been clicked yet or timer is stopped
       if (!cycle.on) return
       // behaviour if countdown goes to 0
+      // // If we are on a break, we want to stop by default
+      // // TODO: implement "infinite" loop switch
       if (countdownRef.current === 0 && modeRef.current === "break") return setCycle({...cycle, on: false})
       if (countdownRef.current === 0) return switchMode()
       // tick
@@ -80,7 +74,11 @@ function App() {
     return () => clearInterval(interval)
   }, [cycle])
 
-
+  // How to count time - we want to do this in a ref to prevent overlap
+  const tick = () => {
+    countdownRef.current--
+    setCountdown(countdownRef.current)
+  }
 
   // TODO: pause feature
   const startCycle = () => {
@@ -90,47 +88,91 @@ function App() {
     if (modeRef.current === "break") modeRef.current = "work"
   }
 
-  // Display<<<<<<<
+  // Display
   const cycleForm = () => {
     return (
+        <div className={"form"}>
+          <div className={"formGrid"}>
+            <div>
+              <p className={"inputLabel"}>Work time</p>
+              <input
+                  min={1}
+                  max={255}
+                  className={"input"}
+                  type={"number"}
+                  value={cycle.workTime}
+                  onChange={(e) => setCycle({...cycle, workTime: e.target.value})}
+              />
+            </div>
+            <div>
+              <p className={"inputLabel"}>Pause time</p>
+              <input
+                  min={1}
+                  max={255}
+                  className={"input"}
+                  type={"number"}
+                  value={cycle.pauseTime}
+                  onChange={(e) => setCycle({...cycle, pauseTime: e.target.value})}
+              />
+            </div>
+            <div>
+              <p className={"inputLabel"}>Break time</p>
+              <input
+                  min={1}
+                  max={255}
+                  className={"input"}
+                  type={"number"}
+                  value={cycle.breakTime}
+                  onChange={(e) => setCycle({...cycle, breakTime: e.target.value})}
+              />
+            </div>
+          </div>
+        </div>
+    )
+  }
+
+  // Timer
+  const renderTimer = () => {
+
+    const formatTime = () => {
+      let mins = Math.floor(countdown/60)
+      let secs = countdown % 60
+      if (secs < 10) secs = "0"+secs
+      return mins + " : " + secs
+    }
+
+    return (
         <>
-          <p>Work time</p>
-          <input type={"number"} value={cycle.workTime} onChange={(e) => setCycle({...cycle, workTime: e.target.value})} />
-          <p>Pause time</p>
-          <input type={"number"} value={cycle.pauseTime} onChange={(e) => setCycle({...cycle, pauseTime: e.target.value})} />
-          <p>Break time</p>
-          <input type={"number"} value={cycle.breakTime} onChange={(e) => setCycle({...cycle, breakTime: e.target.value})} />
+          <p className={"timer"} style={{ color: countdown < 60 ? "red" : "black"}}>{formatTime()}</p>
+
+          <p>Loops left: {loopRef.current}</p>
         </>
     )
   }
 
   return (
     <>
-      <div style={styles.wrapper}>
-        <h1>Pomodoro.io</h1>
+      <div className={"wrapper"}>
+        <h1>Yet another pomodoro</h1>
 
-        {/*Timer wrapper*/}
         <div>
-
           {!cycle.on && cycleForm()}
 
-          <p>{countdown} {modeRef.current}</p>
+          {cycle.on && renderTimer()}
 
-          <p>Left: {loopRef.current}</p>
+          <div className={"actionsWrapper"}>
+            <button className={"button"} onClick={() => startCycle()}>
+              Start cycle
+            </button>
 
-          <br/>
+            <button className={"button"} onClick={() => setCycle({...cycle, on: false})}>
+              Stop cycle
+            </button>
 
-          <button onClick={() => startCycle()}>
-            Start cycle
-          </button>
-
-          <button onClick={() => setCycle({...cycle, on: false})}>
-            Stop cycle
-          </button>
-
-          <button onClick={() => console.log(cycle)}>
-            Log
-          </button>
+            <button className={"button"} onClick={() => setCycle({...cycle, pause: !cycle.pause})}>
+              Pause cycle
+            </button>
+          </div>
         </div>
 
       </div>

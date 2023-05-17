@@ -1,0 +1,68 @@
+html {
+    min-height: 100%;
+}
+
+
+.wrapper {
+    min-height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    text-align: center;
+}
+
+.formGrid {
+    padding: 0 64px;
+    grid-row: 1;
+    display: grid;
+    column-gap: 16px;
+}
+
+.formGrid div {
+    grid-row: 1;
+}
+
+.inputLabel {
+    text-align: left;
+    margin-bottom: 4px;
+}
+
+.input[type="number"] {
+    box-sizing: border-box;
+    border-radius: 6px;
+    border: 2px solid rgba(0,0,0,0.2);
+    padding: 8px;
+    font-size: 19px;
+    width: 100%;
+    z-index: 1;
+}
+
+.input[type="number"]:focus-visible {
+    outline: none!important;
+    border: 2px solid brown;
+}
+
+.actionsWrapper {
+    margin-top: 16px;
+}
+
+.button {
+    padding: 8px;
+    margin: 0 16px;
+    background-color: rgba(232, 149, 149, 0.63);
+    border: 1px solid rgba(232, 149, 149, 1);
+    border-radius: 6px;
+    transition: 0.25s ease-in-out;
+}
+
+.button:hover {
+    filter: brightness(85%);
+    cursor: pointer;
+}
+
+.timer {
+    font-size: 22px;
+    font-weight: 700;
+}
